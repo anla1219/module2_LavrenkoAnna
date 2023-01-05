@@ -41,24 +41,26 @@ public class ShoppingCart {
         item.setType(type);
         items.add(item);
     }
-/**
- * Formats shopping price.
- *
- * @return string as lines, separated with \n,
- * first line: # Item Price Quan. Discount Total
- * second line: ---------------------------------------------------------
- * next lines: NN Title $PP.PP Q DD% $TT.TT
- * 1 Some title $.30 2 - $.60
- * 2 Some very long $100.00 1 50% $50.00
- * ...
- * 31 Item 42 $999.00 1000 - $999000.00
- * end line: ---------------------------------------------------------
- * last line: 31 $999050.60
- *
- * if no items in cart returns "No items." string.
- */ public String formatTicket(){double total = calculateItemsParameters();
-    return getFormattedTicketTable(total);
-}
+
+    /**
+     * Formats shopping price.
+     *
+     * @return string as lines, separated with \n,
+     * first line: # Item Price Quan. Discount Total
+     * second line: ---------------------------------------------------------
+     * next lines: NN Title $PP.PP Q DD% $TT.TT
+     * 1 Some title $.30 2 - $.60
+     * 2 Some very long $100.00 1 50% $50.00
+     * ...
+     * 31 Item 42 $999.00 1000 - $999000.00
+     * end line: ---------------------------------------------------------
+     * last line: 31 $999050.60
+     *
+     * if no items in cart returns "No items." string.
+     */
+    public String formatTicket(){double total = calculateItemsParameters();
+        return getFormattedTicketTable(total);
+    }
 
     private void appendSeparator(StringBuilder sb, int lineLength) {
         for (int i = 0; i < lineLength; i++) {
@@ -82,21 +84,11 @@ public class ShoppingCart {
     private String getFormattedTicketTable(double total) {
         if (items.size() == 0)
             return "No items.";
-        List<String[]> lines = new ArrayList<String[]>();
+
         String[] header = {"#","Item","Price","Quan.","Discount","Total"};
         int[] align = new int[] { 1, -1, 1, 1, 1, 1 };
-        // formatting each line
-        int index = 0;
-        for (Item item : items) { lines.add(new String[]{
-                String.valueOf(++index),
-                item.getTitle(),
-                MONEY.format(item.getPrice()),
-                String.valueOf(item.getQuantity()),
-                (item.getDiscount() == 0) ? "-" : (item.getDiscount() + "%"),
-                MONEY.format(item.getTotal())
-        });
-        }
-        String[] footer = { String.valueOf(index),"","","","", MONEY.format(total) };
+        List<String[]> lines = convertItemsToTableLines();
+        String[] footer = { String.valueOf(items.size()),"","","","", MONEY.format(total) };
         // column max length
         int[] width = new int[]{0,0,0,0,0,0};
         for (String[] line : lines)
@@ -124,14 +116,35 @@ public class ShoppingCart {
         appendFormattedLine(sb, footer, align, width, false);
         return sb.toString();
     }
+
     private double calculateItemsParameters() {
         double total = 0.00;
         for (Item item : items) {
             item.setDiscount(calculateDiscount(item.getType(), item.getQuantity()));
             item.setTotal(item.getPrice() * item.getQuantity() * (100.00 - item.getDiscount()) / 100.00);
             total += item.getTotal();
-        }  return total;
-    }  // --- private section -----------------------------------------------------
+        }
+        return total;
+    }
+
+    private List<String[]> convertItemsToTableLines() {
+        List<String[]> lines = new ArrayList<>();
+        int index = 0;
+        for (Item item : items) {
+            lines.add(new String[]{
+                    String.valueOf(++index),
+                    item.getTitle(),
+                    MONEY.format(item.getPrice()),
+                    String.valueOf(item.getQuantity()),
+                    (item.getDiscount() == 0) ? "-" : (item.getDiscount() + "%"),
+                    MONEY.format(item.getTotal())
+            });
+        }
+        return lines;
+    }
+
+
+    // --- private section -----------------------------------------------------
     private static final NumberFormat MONEY;
     static {
         DecimalFormatSymbols symbols = new DecimalFormatSymbols();
@@ -196,39 +209,51 @@ public class ShoppingCart {
         private ItemType type;
         private double total;
         private int discount;
+
         public String getTitle() {
             return title;
         }
+
         public void setTitle(String title) {
             this.title = title;
         }
+
         public double getPrice() {
             return price;
         }
+
         public void setPrice(double price) {
             this.price = price;
         }
+
         public int getQuantity() {
             return quantity;
         }
+
         public void setQuantity(int quantity) {
             this.quantity = quantity;
         }
+
         public ItemType getType() {
             return type;
         }
+
         public void setType(ItemType type) {
             this.type = type;
         }
+
         public double getTotal() {
             return total;
         }
+
         public void setTotal(double total) {
             this.total = total;
         }
+
         public int getDiscount() {
             return discount;
         }
+
         public void setDiscount(int discount) {
             this.discount = discount;
         }
